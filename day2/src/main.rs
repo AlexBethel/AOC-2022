@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 fn main() {
     let input = std::fs::read_to_string("input").unwrap();
     println!("Score 1 = {}", score_1(&input));
+    println!("Score 2 = {}", score_2(&input));
 }
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
@@ -20,6 +21,19 @@ impl Move {
             2 => Move::Scissors,
             _ => panic!("{}", n),
         }
+    }
+
+    pub fn beater(self) -> Self {
+        match self {
+            Move::Rock => Move::Paper,
+            Move::Paper => Move::Scissors,
+            Move::Scissors => Move::Rock,
+        }
+    }
+
+    pub fn loser(self) -> Self {
+        // I'm lazy lol
+        self.beater().beater()
     }
 }
 
@@ -46,13 +60,8 @@ impl Ord for Move {
     }
 }
 
-fn score_1(input: &str) -> u32 {
-    let moves = input.lines().map(|line| {
-        let (opp_n, you_n) = parse_line(line);
-        (Move::new(opp_n), Move::new(you_n))
-    });
-
-    moves
+fn total_scores(inputs: impl Iterator<Item = (Move, Move)>) -> u32 {
+    inputs
         .map(|(opp, you)| {
             you as u32
                 + match Ord::cmp(&you, &opp) {
@@ -62,6 +71,33 @@ fn score_1(input: &str) -> u32 {
                 }
         })
         .sum()
+}
+
+fn score_1(input: &str) -> u32 {
+    let moves = input.lines().map(|line| {
+        let (opp_n, you_n) = parse_line(line);
+        (Move::new(opp_n), Move::new(you_n))
+    });
+
+    total_scores(moves)
+}
+
+fn score_2(input: &str) -> u32 {
+    let moves = input.lines().map(|line| {
+        let (opp_n, you_n) = parse_line(line);
+        let opp = Move::new(opp_n);
+        (
+            opp,
+            match you_n {
+                0 => opp.loser(),
+                1 => opp,
+                2 => opp.beater(),
+                _ => unreachable!()
+            },
+        )
+    });
+
+    total_scores(moves)
 }
 
 fn parse_line(line: &str) -> (u32, u32) {

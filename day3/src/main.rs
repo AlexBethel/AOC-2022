@@ -68,7 +68,7 @@ impl Rucksack {
             .collect::<Result<_, _>>()
     }
 
-    pub fn iter<'a>(&'a self) -> impl 'a + Iterator<Item = &'a u32> {
+    pub fn iter(&self) -> impl Iterator<Item = &u32> {
         Iterator::chain(self.left.iter(), self.right.iter())
     }
 

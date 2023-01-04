@@ -1,4 +1,4 @@
-use chumsky::prelude::*;
+use chumsky::{prelude::*, text::int};
 
 #[derive(Debug)]
 struct StackRow(Vec<Option<char>>);
@@ -7,11 +7,7 @@ struct StackRow(Vec<Option<char>>);
 struct StackRepr(Vec<StackRow>);
 
 fn parse_stack_row() -> impl Parser<char, StackRow, Error = Simple<char>> {
-    let filled = just('[')
-        .ignore_then(any())
-        .then_ignore(just(']'))
-        .map(Some);
-
+    let filled = any().delimited_by(just('['), just(']')).map(Some);
     let empty = just("   ").map(|_| None);
 
     filled.or(empty).separated_by(just(' ')).map(StackRow)
@@ -64,11 +60,7 @@ struct MoveLine {
 }
 
 fn parse_move_line() -> impl Parser<char, MoveLine, Error = Simple<char>> {
-    let num = filter(|c: &char| c.is_ascii_digit())
-        .repeated()
-        .collect::<String>()
-        .from_str()
-        .unwrapped();
+    let num = int(10).map(|s: String| s.parse().unwrap());
 
     just("move ")
         .ignore_then(num)
